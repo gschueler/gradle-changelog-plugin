@@ -8,7 +8,10 @@ public class ChangelogPlugin implements Plugin<Project> {
     	// Add the 'greeting' extension object
         def extension = project.extensions.create('changelog', ChangelogPluginExtension, project)
        
-        project.tasks.create("changelog", Changelog)
+        project.tasks.create("changelog", Changelog){task->
+        	task.githubUrl=extension.githubUrl
+        	task.changelogFile=extension.changelogFile
+        }
     }
     
 

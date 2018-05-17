@@ -11,14 +11,17 @@ import java.io.File;
 
 public class Changelog extends DefaultTask {
 
-    @Optional
-    ChangelogPluginExtension extension
+    // @Optional
+    // ChangelogPluginExtension changelog
 
     @Optional
     VersionConfig versionConfig
 
+	def changelogFile
+    String githubUrl
+
     void xprintChangelog() {
-        System.out.printf("%s, %s!\n", extension.changelogFile, extension.githubUrl); 
+        System.out.printf("%s, %s!\n", changelogFile, githubUrl); 
     }
 
 	def getAxionVersion() {
@@ -32,9 +35,24 @@ public class Changelog extends DefaultTask {
 	            rules.nextVersion
 	    )
 	    println "curVersion: $curVersion"
-	    return curVersion
+	    
+	    String tagName = rules.tag.serialize(rules.tag, curVersion.previousVersion.toString())
+	    println "prevTag: $tagName"
+	    return [curVersion,tagName]
 	}
 
+	/**
+	 * Unreleased changes list from the changelog file
+	 * @param prevVersion
+	 * @param changelog
+	 * @return
+	 */
+	def unreleasedLog(prevVersion, changelog) {
+	    def m = changelog&&changelog.isFile()?changelog?.text =~ ~/(?si)^(## unreleased(.*))## ${prevVersion}.*$/:null
+	    if (m?.find()) {
+	        return m.group(2)?.split(/\n/).findAll { it }.collect { it.replaceAll(/^[\*-]\s*/, '') }
+	    }
+	}
     /**
 	 * Generate partial or full changelog
 	 * @param prevTag
@@ -52,6 +70,7 @@ public class Changelog extends DefaultTask {
 	    proc.consumeProcessOutput(sout, serr)
 	    proc.waitForOrKill(1000)
 	    def logs = sout.toString().readLines()
+	    // println "logs: $logs"
 	    def include = [~/.*[fF]ix(e[sd])? #\d+.*/, ~/^[fF]ix(e[sd])?(:|\s).*/, ~/^[lL]og:?.*/]
 
 	    def unrel = changelog ? unreleasedLog(prevVersion, changelog) ?: [] : []
@@ -73,18 +92,19 @@ public class Changelog extends DefaultTask {
 	                Matcher.quoteReplacement(text) + '$3'
 	        )
 	    }
+	    // println "logs: ${logs?.size()}"
 	    return logs
 	}
 
     @TaskAction
     def printChangelog(){
-    	 def version = getAxionVersion()
+    	 def (version,prevTag) = getAxionVersion()
         println genChangelog(
-                version.position.revision,
-                extension.githubUrl,
+                prevTag,
+                githubUrl,
                 version.version,
                 version.previousVersion,
-                extension.changelogFile,
+                changelogFile,
                 project.hasProperty("changelogFull")
         )
 
