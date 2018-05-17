@@ -28,16 +28,16 @@ public class Changelog extends DefaultTask {
         VersionConfig config = GradleAwareContext.configOrCreateFromProject(project, versionConfig)
 		def ctx = GradleAwareContext.create(project, config)
 	    def rules = ctx.rules
-	    println "scmPosition: $config.scmPosition"
+	    // println "scmPosition: $config.scmPosition"
 	    def curVersion=config.versionService.currentVersion(
 	            rules.version,
 	            rules.tag,
 	            rules.nextVersion
 	    )
-	    println "curVersion: $curVersion"
+	    // println "curVersion: $curVersion"
 	    
 	    String tagName = rules.tag.serialize(rules.tag, curVersion.previousVersion.toString())
-	    println "prevTag: $tagName"
+	    // println "prevTag: $tagName"
 	    return [curVersion,tagName]
 	}
 
