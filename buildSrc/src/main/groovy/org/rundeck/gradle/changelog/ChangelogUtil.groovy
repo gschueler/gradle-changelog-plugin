@@ -27,8 +27,9 @@ class ChangelogUtil{
 	    // println "curVersion: $curVersion"
 	    
 	    String tagName = rules.tag.serialize(rules.tag, curVersion.previousVersion.toString())
+	    String newTagName = rules.tag.serialize(rules.tag, curVersion.version.toString())
 	    // println "prevTag: $tagName"
-	    return [curVersion,tagName]
+	    return [curVersion,newTagName,tagName]
 	}
 
 	/**
@@ -53,7 +54,7 @@ class ChangelogUtil{
 	 * @param full
 	 * @return
 	 */
-	def genChangelog(prevTag, baseUrl, curVersion, prevVersion, File changelog, full = false) {
+	def genChangelog(prevTag, baseUrl, curVersion, curTag, prevVersion, File changelog, full = false) {
 	    def diff = "${prevTag}..."
 	    def serr = new StringBuilder(), sout = new StringBuilder()
 	    def proc = ['git', 'log', '--no-merges','--pretty=format:%s', diff].execute()
@@ -66,21 +67,31 @@ class ChangelogUtil{
 	    def unrel = changelog ? unreleasedLog(prevVersion, changelog) ?: [] : []
 
 	    unrel.addAll(logs.findAll { t -> t && include.any { t ==~ it } })
-	    logs = (baseUrl?
-	    		unrel.collect { '* ' + it.replaceAll(/^[lL]og:\s+/,'').replaceAll(/(#(\d+))/, "[Issue \$1]($baseUrl/issues/\$2)") }
-	            :unrel).join('\n')
+	    logs = unrel.collect { it.replaceAll(/^[lL]og:\s+/,'') }
+	    if(baseUrl){
+	    	logs = logs.collect{it.replaceAll(/(#(\d+))/, "[Issue \$1]($baseUrl/issues/\$2)")}
+	    }
+
+        logs = logs.collect{"* $it"}.join('\n')
 	    logs = logs ? logs + '\n' : ''
 	    if (full && changelog) {
 	        def text = """## ${curVersion}
 
-	$logs
-	[Changes]($baseUrl/compare/${diff}v${curVersion})
-
-	"""
-	        return changelog.text.replaceAll(
-	                ~/(?s)^(## unreleased(.*))?(## ${prevVersion}.*)$/,
-	                Matcher.quoteReplacement(text) + '$3'
-	        )
+$logs
+"""
+			if(baseUrl){
+				text+="""
+[Changes]($baseUrl/compare/${diff}v${curVersion})
+"""
+			}
+			if(changelog.exists()){
+		        return changelog.text.replaceAll(
+		                ~/(?s)^(## unreleased(.*))?(## ${prevVersion}.*)$/,
+		                Matcher.quoteReplacement(text) + '$3'
+		        )
+	        }else{
+	        	return text
+	        }
 	    }
 	    // println "logs: ${logs?.size()}"
 	    return logs

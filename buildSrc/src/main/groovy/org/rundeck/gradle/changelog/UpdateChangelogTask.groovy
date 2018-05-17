@@ -19,14 +19,15 @@ public class UpdateChangelogTask extends DefaultTask {
     @TaskAction
     def updateChangelog(){
     	def util = extension.getUtil(project,versionConfig)
-		def (version,prevTag) = util.getAxionVersion()
+		def (version,curTag,prevTag) = util.getAxionVersion()
         def newtext= util.genChangelog(
                 prevTag,
                 extension.githubUrl,
                 version.version,
+                curTag,
                 version.previousVersion,
                 extension.changelogFile,
-                project.hasProperty("changelogFull")
+                true
         )
         def changelogFile=extension.changelogFile
         if(!changelogFile){

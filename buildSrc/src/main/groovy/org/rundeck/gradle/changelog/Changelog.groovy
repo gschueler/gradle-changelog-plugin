@@ -21,11 +21,12 @@ public class Changelog extends DefaultTask {
     @TaskAction
     def printChangelog(){
     	def util = extension.getUtil(project,versionConfig)
-    	 def (version,prevTag) = util.getAxionVersion()
+    	 def (version,curTag,prevTag) = util.getAxionVersion()
         println util.genChangelog(
                 prevTag,
                 extension.githubUrl,
                 version.version,
+                curTag,
                 version.previousVersion,
                 extension.changelogFile,
                 project.hasProperty("changelogFull")
