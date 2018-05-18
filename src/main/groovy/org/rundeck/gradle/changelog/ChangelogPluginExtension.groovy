@@ -1,7 +1,6 @@
-package org.rundeck.gradle.changelog;
+package org.rundeck.gradle.changelog
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.Project
 import pl.allegro.tech.build.axion.release.domain.VersionConfig
 
 class ChangelogPluginExtension{
@@ -10,8 +9,7 @@ class ChangelogPluginExtension{
     boolean create=true
     
     ChangelogPluginExtension(Project project){
-    	
-    	changelogFile=project.file("CHANGELOG.md")
+        changelogFile = "CHANGELOG.md"
     }
     ChangelogUtil getUtil(Project project, VersionConfig versionConfig){
     	new ChangelogUtil(project:project,versionConfig:versionConfig)

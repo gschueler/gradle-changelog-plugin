@@ -1,21 +1,17 @@
 package org.rundeck.gradle.changelog
 
+import com.github.zafarkhaja.semver.Version
+import org.gradle.api.Project
 import pl.allegro.tech.build.axion.release.domain.VersionConfig
 import pl.allegro.tech.build.axion.release.infrastructure.di.GradleAwareContext
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.TaskAction;
-import java.io.File;
-import java.util.regex.Matcher
 
+import java.util.regex.Matcher
 
 class ChangelogUtil{
 	Project project
 	VersionConfig versionConfig
 
-	def getAxionVersion() {
+    VersionInfo getAxionVersion() {
         VersionConfig config = GradleAwareContext.configOrCreateFromProject(project, versionConfig)
 		def ctx = GradleAwareContext.create(project, config)
 	    def rules = ctx.rules
@@ -30,7 +26,7 @@ class ChangelogUtil{
 	    String tagName = rules.tag.serialize(rules.tag, curVersion.previousVersion.toString())
 	    String newTagName = rules.tag.serialize(rules.tag, curVersion.version.toString())
 	    // println "prevTag: $tagName"
-	    return [curVersion,newTagName,tagName]
+        return [version: curVersion, nextTag: newTagName, lastTag: tagName]
 	}
 
 	/**
@@ -39,7 +35,7 @@ class ChangelogUtil{
 	 * @param changelog
 	 * @return
 	 */
-	def unreleasedLog(prevVersion, changelog) {
+    def unreleasedLog(Version prevVersion, changelog) {
 	    def m = (changelog&&changelog.isFile())? changelog?.text =~ ~/(?si)^(## unreleased(.*))(## ${prevVersion}.*)?$/:null
 	    if (m?.find()) {
 	        return m.group(2)?.split(/\n/).findAll { it }.collect { it.replaceAll(/^[\*-]\s*/, '') }
@@ -55,7 +51,16 @@ class ChangelogUtil{
 	 * @param full
 	 * @return
 	 */
-	def genChangelog(prevTag, baseUrl, curVersion, curTag, prevVersion, File changelog, full = false) {
+    def genChangelog(
+            String prevTag,
+            String baseUrl,
+            Version curVersion,
+            String curTag,
+            Version prevVersion,
+            def changelog,
+            boolean full = false
+    ) {
+        File changelogFile = changelog ? project.file(changelog) : null
 	    def diff = "${prevTag}..."
 	    def serr = new StringBuilder(), sout = new StringBuilder()
 	    def proc = ['git', 'log', '--no-merges','--pretty=format:%s', diff].execute()
@@ -65,7 +70,7 @@ class ChangelogUtil{
 	    // println "logs: $logs"
 	    def include = [~/.*[fF]ix(e[sd])? #\d+.*/, ~/^[fF]ix(e[sd])?(:|\s).*/, ~/^[lL]og:?.*/]
 
-	    def unrel = changelog ? unreleasedLog(prevVersion, changelog) ?: [] : []
+        def unrel = changelogFile ? unreleasedLog(prevVersion, changelogFile) ?: [] : []
 
 	    unrel.addAll(logs.findAll { t -> t && include.any { t ==~ it } })
 	    logs = unrel.collect { it.replaceAll(/^[lL]og:\s+/,'') }
@@ -75,7 +80,7 @@ class ChangelogUtil{
 
         logs = logs.collect{"* $it"}.join('\n')
 	    logs = logs ? logs + '\n' : ''
-	    if (full && changelog) {
+        if (full && changelogFile) {
 	        def text = """## ${curVersion}
 
 $logs
@@ -85,8 +90,8 @@ $logs
 [Changes]($baseUrl/compare/${diff}v${curVersion})
 """
 			}
-			if(changelog.exists()){
-		        return changelog.text.replaceAll(
+            if (changelogFile.exists()) {
+                return changelogFile.text.replaceAll(
 		                ~/(?s)^(## unreleased(.*))?(## ${prevVersion}.*)?$/,
 		                Matcher.quoteReplacement(text) + '$3'
 		        )

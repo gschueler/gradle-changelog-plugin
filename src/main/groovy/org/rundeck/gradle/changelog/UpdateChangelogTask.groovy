@@ -1,35 +1,34 @@
-package org.rundeck.gradle.changelog;
+package org.rundeck.gradle.changelog
 
-import pl.allegro.tech.build.axion.release.domain.VersionConfig
-import pl.allegro.tech.build.axion.release.infrastructure.di.GradleAwareContext
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.DefaultTask;
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.TaskAction;
-import java.io.File;
+import org.gradle.api.tasks.TaskAction
+import pl.allegro.tech.build.axion.release.domain.VersionConfig
 
 public class UpdateChangelogTask extends DefaultTask {
+    @Internal
     @Optional
     ChangelogPluginExtension extension
 
+    @Internal
     @Optional
     VersionConfig versionConfig
 
     @TaskAction
     def updateChangelog(){
     	def util = extension.getUtil(project,versionConfig)
-		def (version,curTag,prevTag) = util.getAxionVersion()
-        def newtext= util.genChangelog(
-                prevTag,
+        VersionInfo info = util.getAxionVersion()
+        String newtext = util.genChangelog(
+                info.lastTag,
                 extension.githubUrl,
-                version.version,
-                curTag,
-                version.previousVersion,
+                info.version.version,
+                info.nextTag,
+                info.version.previousVersion,
                 extension.changelogFile,
                 true
         )
-        def changelogFile=extension.changelogFile
+        def changelogFile = extension.changelogFile ? project.file(extension.changelogFile) : null
         if(!changelogFile){
         	// println "File is not set: changelogFile"
         	throw new Exception("File is not set: changelogFile")
