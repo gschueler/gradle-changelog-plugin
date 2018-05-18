@@ -42,7 +42,7 @@ public class UpdateChangelogTask extends DefaultTask {
         if(dryRun){
         	println "DRYRUN: update changlog file: $changelogFile"
         	println "--------------------------------------------"
-        	println text
+        	println newtext
         	return
         }
         changelogFile.text = newtext
