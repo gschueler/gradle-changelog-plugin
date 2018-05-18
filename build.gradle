@@ -1,5 +1,26 @@
+plugins{
+    id 'java-gradle-plugin'
+    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
+}
 apply plugin:'pl.allegro.tech.build.axion-release'
+apply plugin:'idea'
+apply plugin:'groovy'
 
 project.version = scmVersion.version
 
-apply plugin: 'changelog'
+
+repositories{
+        mavenCentral()
+        jcenter()
+}
+dependencies{
+        compile 'pl.allegro.tech.build:axion-release-plugin:1.9.0'
+}
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'org.rundeck.gradle.changelog'
+            implementationClass = 'org.rundeck.gradle.changelog.ChangelogPlugin'
+        }
+    }
+}
