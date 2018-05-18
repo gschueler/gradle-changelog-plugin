@@ -9,7 +9,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction;
 import java.io.File;
 
-public class Changelog extends DefaultTask {
+public class ChangelogTask extends DefaultTask {
 
     @Optional
     ChangelogPluginExtension extension

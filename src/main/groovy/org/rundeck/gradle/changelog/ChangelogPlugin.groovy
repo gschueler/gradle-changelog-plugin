@@ -7,8 +7,8 @@ public class ChangelogPlugin implements Plugin<Project> {
     public void apply(Project project) {
     	// Add the 'greeting' extension object
         def extension = project.extensions.create('changelog', ChangelogPluginExtension, project)
-       
-        project.tasks.create("changelog", Changelog){task->
+
+        project.tasks.create("changelog", ChangelogTask) { task ->
         	task.extension=extension
         	
         }
