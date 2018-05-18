@@ -8,6 +8,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction;
 import java.io.File;
+import java.util.regex.Matcher
 
 
 class ChangelogUtil{
@@ -86,7 +87,7 @@ $logs
 			}
 			if(changelog.exists()){
 		        return changelog.text.replaceAll(
-		                ~/(?s)^(## unreleased(.*))?(## ${prevVersion}.*)$/,
+		                ~/(?s)^(## unreleased(.*))?(## ${prevVersion}.*)?$/,
 		                Matcher.quoteReplacement(text) + '$3'
 		        )
 	        }else{
