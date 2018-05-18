@@ -39,7 +39,7 @@ class ChangelogUtil{
 	 * @return
 	 */
 	def unreleasedLog(prevVersion, changelog) {
-	    def m = changelog&&changelog.isFile()?changelog?.text =~ ~/(?si)^(## unreleased(.*))## ${prevVersion}.*$/:null
+	    def m = (changelog&&changelog.isFile())? changelog?.text =~ ~/(?si)^(## unreleased(.*))(## ${prevVersion}.*)?$/:null
 	    if (m?.find()) {
 	        return m.group(2)?.split(/\n/).findAll { it }.collect { it.replaceAll(/^[\*-]\s*/, '') }
 	    }
