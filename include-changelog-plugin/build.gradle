@@ -1,0 +1,20 @@
+buildscript{
+    //apply plugin: 'pl.allegro.tech.build.axion-release'
+    dependencies{
+    	classpath 'org.rundeck.gradle:changelog-plugin'
+    }
+}
+plugins{
+    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
+}
+apply plugin:'org.rundeck.gradle.changelog'
+
+project.version = scmVersion.version
+
+
+repositories{
+        mavenCentral()
+        jcenter()
+}
+dependencies{
+}
