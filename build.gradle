@@ -1,24 +1,42 @@
-plugins{
+plugins {
     id 'java-gradle-plugin'
     id 'pl.allegro.tech.build.axion-release' version '1.9.0'
+    id 'nebula.facet' version '4.0.1'
 }
-apply plugin:'pl.allegro.tech.build.axion-release'
-apply plugin:'idea'
-apply plugin:'groovy'
+apply plugin: 'pl.allegro.tech.build.axion-release'
+apply plugin: 'idea'
+apply plugin: 'groovy'
+apply plugin: 'nebula.facet'
 
+facets {
+    functTest {
+        parentSourceSet = 'test'
+        testTaskName = 'functionalTest'
+    }
+    integTest {
+        parentSourceSet = 'main'
+        testTaskName = 'integrationTest'
+    }
+}
 project.version = scmVersion.version
 
 
-repositories{
-        mavenCentral()
-        jcenter()
+group = 'org.rundeck.gradle'
+
+repositories {
+    mavenCentral()
+    jcenter()
 }
-dependencies{
-        compile 'pl.allegro.tech.build:axion-release-plugin:1.9.0'
+dependencies {
+    compile 'pl.allegro.tech.build:axion-release-plugin:1.9.0'
+    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude group: 'org.codehaus.groovy'
+    }
 }
 gradlePlugin {
+    testSourceSets sourceSets.functTest
     plugins {
-        simplePlugin {
+        'org.rundeck.gradle.changelog' {
             id = 'org.rundeck.gradle.changelog'
             implementationClass = 'org.rundeck.gradle.changelog.ChangelogPlugin'
         }

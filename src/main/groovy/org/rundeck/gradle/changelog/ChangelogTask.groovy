@@ -17,7 +17,7 @@ public class ChangelogTask extends DefaultTask {
     VersionConfig versionConfig
 
 
-    @TaskAction
+//    @TaskAction
     def printChangelog() {
         def util = extension.getUtil(project, versionConfig)
         VersionInfo info = util.getAxionVersion()
@@ -31,5 +31,17 @@ public class ChangelogTask extends DefaultTask {
                 project.hasProperty("changelogFull")
         )
 
+    }
+
+    @TaskAction
+    def printChangelog2() {
+        def util = extension.getUtil(project, versionConfig)
+        VersionInfo info = util.getAxionVersion()
+        List<LogSource> sources = extension.buildSources(project)
+        println extension.changelogFormatter.formatChangelog(
+                info.version.version,
+                new Date(),
+                sources.collect { it.logs }.flatten()
+        )
     }
 }

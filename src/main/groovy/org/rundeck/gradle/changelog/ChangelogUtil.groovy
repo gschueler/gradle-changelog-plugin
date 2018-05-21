@@ -12,11 +12,11 @@ class ChangelogUtil{
 	VersionConfig versionConfig
 
     VersionInfo getAxionVersion() {
-        VersionConfig config = GradleAwareContext.configOrCreateFromProject(project, versionConfig)
-		def ctx = GradleAwareContext.create(project, config)
+        versionConfig = GradleAwareContext.configOrCreateFromProject(project, versionConfig)
+		def ctx = GradleAwareContext.create(project, versionConfig)
 	    def rules = ctx.rules
 	    // println "scmPosition: $config.scmPosition"
-	    def curVersion=config.versionService.currentVersion(
+	    def curVersion=versionConfig.versionService.currentVersion(
 	            rules.version,
 	            rules.tag,
 	            rules.nextVersion
@@ -29,18 +29,6 @@ class ChangelogUtil{
         return [version: curVersion, nextTag: newTagName, lastTag: tagName]
 	}
 
-	/**
-	 * Unreleased changes list from the changelog file
-	 * @param prevVersion
-	 * @param changelog
-	 * @return
-	 */
-    def unreleasedLog(Version prevVersion, changelog) {
-	    def m = (changelog&&changelog.isFile())? changelog?.text =~ ~/(?si)^(## unreleased(.*))(## ${prevVersion}.*)?$/:null
-	    if (m?.find()) {
-	        return m.group(2)?.split(/\n/).findAll { it }.collect { it.replaceAll(/^[\*-]\s*/, '') }
-	    }
-	}
     /**
 	 * Generate partial or full changelog
 	 * @param prevTag
@@ -70,7 +58,7 @@ class ChangelogUtil{
 	    // println "logs: $logs"
 	    def include = [~/.*[fF]ix(e[sd])? #\d+.*/, ~/^[fF]ix(e[sd])?(:|\s).*/, ~/^[lL]og:?.*/]
 
-        def unrel = changelogFile ? unreleasedLog(prevVersion, changelogFile) ?: [] : []
+        def unrel = changelogFile ? unreleasedLogs(prevVersion, changelogFile) ?: [] : []
 
 	    unrel.addAll(logs.findAll { t -> t && include.any { t ==~ it } })
 	    logs = unrel.collect { it.replaceAll(/^[lL]og:\s+/,'') }
